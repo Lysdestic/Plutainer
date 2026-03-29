@@ -16,6 +16,13 @@ mkdir -p "$DEST_DIR"
 echo "Linking files for t7x (Black Ops III)..."
 ln -sf "$SOURCE_DIR"/{codlogo.bmp,machinecfg,steam_api64.dll,steamclient64.dll,tier0_s64.dll,vstdlib_s64.dll} "$DEST_DIR"/
 
+# T7x expects BlackOps3.exe or BlackOps3_UnrankedDedicatedServer.exe in its directory
+for exe in BlackOps3.exe BlackOps3_UnrankedDedicatedServer.exe; do
+  if [[ -f "$SOURCE_DIR/$exe" ]]; then
+    ln -sf "$SOURCE_DIR/$exe" "$DEST_DIR"/
+  fi
+done
+
 # Create zone/ as a real directory with symlinked contents so configs can be
 # placed alongside the read-only game data (same approach as T4's main/)
 mkdir -p "$DEST_DIR/zone"
