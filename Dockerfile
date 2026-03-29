@@ -48,6 +48,11 @@ RUN wget https://github.com/mxve/plutonium-updater.rs/releases/latest/download/p
 COPY --chown=plutainer:plutainer scripts/ .
 RUN chmod +x entrypoint.sh healthcheck.sh plutoentry.sh iw4xentry.sh rcon-cli game-config.sh
 
+# Add rcon-cli to PATH so it can be invoked without a full path via docker exec
+USER root
+RUN ln -s /home/plutainer/.plutainer/rcon-cli /usr/local/bin/rcon-cli
+USER plutainer
+
 # Set the stop signal to allow graceful shutdown
 STOPSIGNAL SIGTERM
 
