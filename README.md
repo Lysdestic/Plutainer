@@ -107,6 +107,22 @@ The `-R` flag applies the ownership recursively, ensuring all files and sub-fold
 
 ***
 
+### RCON CLI
+
+The container includes a built-in RCON client for sending commands to your server. It automatically detects the game type, port, and RCON password from your configuration — no extra setup needed.
+
+```sh
+# Send a single command
+docker exec <container_name> rcon-cli status
+
+# Open an interactive RCON session
+docker exec -i <container_name> rcon-cli
+```
+
+Your server configuration file must have `rcon_password` set for `rcon-cli` to work.
+
+***
+
 ### Advanced: IW4MAdmin & RCON
 
 Connecting a containerized IW4MAdmin to your Plutainer server requires special network configuration due to the way Docker handles container-container networking via its proxy.
