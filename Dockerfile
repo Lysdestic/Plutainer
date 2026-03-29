@@ -33,10 +33,12 @@ RUN apt-get update && \
 # Create a non-root user for running the server
 RUN useradd -m plutainer
 
-# Wine environment: suppress debug noise, prevent Gecko/Mono install prompts
-# (which hang in non-interactive containers), and set virtual display for Xvfb
-ENV WINEDEBUG=-all \
-    WINEDLLOVERRIDES="mscoree,mshtml=" \
+# Create X11 socket directory for Xvfb (needed before wineboot and at runtime)
+RUN mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
+
+# Wine environment: prevent Gecko/Mono install prompts (which hang in
+# non-interactive containers), and set virtual display for Xvfb
+ENV WINEDLLOVERRIDES="mscoree,mshtml=" \
     DISPLAY=:99
 
 USER plutainer
@@ -47,6 +49,7 @@ RUN Xvfb :99 -screen 0 320x240x24 & \
     sleep 1 && \
     wineboot -u && \
     wineserver -w && \
+    pkill -f Xvfb || true && \
     rm -f /tmp/.X99-lock
 
 # Download and extract the updaters
@@ -64,10 +67,9 @@ RUN wget https://github.com/mxve/plutonium-updater.rs/releases/latest/download/p
 COPY --chown=plutainer:plutainer scripts/ .
 RUN chmod +x entrypoint.sh healthcheck.sh plutoentry.sh iw4xentry.sh alterentry.sh rcon-cli game-config.sh
 
-# Add rcon-cli to PATH and create X11 socket directory for Xvfb (T7x)
+# Add rcon-cli to PATH so it can be invoked without a full path via docker exec
 USER root
-RUN ln -s /home/plutainer/.plutainer/rcon-cli /usr/local/bin/rcon-cli && \
-    mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
+RUN ln -s /home/plutainer/.plutainer/rcon-cli /usr/local/bin/rcon-cli
 USER plutainer
 
 # Set the stop signal to allow graceful shutdown

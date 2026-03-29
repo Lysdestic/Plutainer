@@ -100,6 +100,7 @@ fi
 # T7x requires a display even in dedicated/headless mode, so start a virtual
 # framebuffer for Wine before launching
 echo "Starting virtual display..."
+rm -f /tmp/.X99-lock
 Xvfb :99 -screen 0 320x240x24 &
 sleep 1
 
