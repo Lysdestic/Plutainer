@@ -97,6 +97,8 @@ if [[ -n "${ALTER_EXTRA_ARGS}" ]]; then
 fi
 
 # --- Step 6: Launch the T7x Server ---
+# T7x requires a display even in dedicated/headless mode, so use xvfb-run
+# to provide a virtual framebuffer for Wine
 echo "Starting T7x Server: ${ALTER_SERVER_NAME}"
-echo "EXECUTING: wine t7x.exe ${CMD_ARGS[@]}"
-exec wine t7x.exe "${CMD_ARGS[@]}"
+echo "EXECUTING: xvfb-run wine t7x.exe ${CMD_ARGS[@]}"
+exec xvfb-run wine t7x.exe "${CMD_ARGS[@]}"
