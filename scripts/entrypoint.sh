@@ -29,10 +29,13 @@ elif [[ -n "${IW4X_GAME}" ]]; then
   echo "Exiting in 10 seconds..." >&2
   sleep 10
   exit 1
+elif [[ -n "${ALTER_GAME}" ]]; then
+  echo "Alterware game type detected (${ALTER_GAME}). Handing off to Alterware entrypoint..."
+  exec /home/plutainer/.plutainer/alterentry.sh
 else
   echo "-------------------------------------------------" >&2
   echo "[ERROR] No game type specified." >&2
-  echo "  > Please set either the 'PLUTO_GAME' or 'IW4X_GAME' environment variable." >&2
+  echo "  > Please set PLUTO_GAME, IW4X_GAME, or ALTER_GAME environment variable." >&2
   echo "Exiting in 10 seconds..." >&2
   sleep 10
   exit 1

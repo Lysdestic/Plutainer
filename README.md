@@ -1,6 +1,6 @@
-# Plutainer: Dockerized Plutonium & IW4x Game Servers
+# Plutainer: Dockerized Plutonium, IW4x & Alterware Game Servers
 
-This repository contains the necessary files to build and run dedicated game servers for Plutonium and IW4x using Docker. The image is designed to be flexible and configurable through environment variables.
+This repository contains the necessary files to build and run dedicated game servers for Plutonium, IW4x, and Alterware using Docker. The image is designed to be flexible and configurable through environment variables.
 
 The container is available on GitHub Container Registry: `ghcr.io/ayymoss/plutainer:latest`
 
@@ -14,8 +14,10 @@ The primary goal of this Docker image is to simplify the setup and management of
   * T6 (Call of Duty: Black Ops II) - `t6mp`, `t6zm`
   * IW5 (Call of Duty: Modern Warfare 3) - `iw5mp`
 * **IW4x:** (Call of Duty: Modern Warfare 2) - `iw4x`
+* **Alterware:**
+  * T7x (Call of Duty: Black Ops III) - `t7x`
 
-The container includes the installation of Wine, Plutonium, and IW4x launchers, and sets up a non-root user for enhanced security.
+The container includes the installation of Wine, Plutonium, IW4x, and Alterware launchers, and sets up a non-root user for enhanced security.
 
 ## Prerequisites
 
@@ -31,7 +33,7 @@ Instead of using a long `docker run` command, it is highly recommended to use `d
 
 ### Environment Variables
 
-The container is configured entirely through environment variables. You must specify either `PLUTO_GAME` or `IW4X_GAME`.
+The container is configured entirely through environment variables. You must specify one of `PLUTO_GAME`, `IW4X_GAME`, or `ALTER_GAME`.
 
 #### General Variables
 
@@ -39,6 +41,7 @@ The container is configured entirely through environment variables. You must spe
 | --- | --- | --- |
 | `PLUTO_GAME` | The Plutonium game to run. **Required** for Plutonium. | |
 | `IW4X_GAME` | The IW4x game to run. Must be `iw4x`. **Required** for IW4x. | |
+| `ALTER_GAME` | The Alterware game to run. Must be `t7x`. **Required** for Alterware. | |
 
 See above for the game tags to use. (eg, `t6zm`)
 
@@ -71,6 +74,17 @@ See above for the game tags to use. (eg, `t6zm`)
 | `IW4X_NET_LOG_IP` | The IP address and port for remote netlogging. | |
 | `IW4X_EXTRA_ARGS` | Allows you to extend the start param. | |
 
+#### Alterware Variables
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `ALTER_CONFIG_FILE` | **Required.** The filename of your server's configuration file (placed in `zone/`). | |
+| `ALTER_SERVER_NAME` | The name of your server. | "T7x Docker Server" |
+| `ALTER_PORT` | The network port for the server. | `27017` |
+| `ALTER_AUTO_UPDATE` | Set to `"false"` to prevent the container from checking for updates on start. | `true` |
+| `ALTER_HEALTHCHECK` | Set to `"false"` to disable the health check. | `true` |
+| `ALTER_EXTRA_ARGS` | Allows you to extend the start param. | |
+
 ***
 
 ### Volumes and Configuration Files
@@ -84,6 +98,7 @@ To persist your server configurations and provide the necessary game files, you 
   * **Plutonium T5 (BO1):** `./plutonium/storage/t5/`
   * **Plutonium IW5 (MW3):** `./gamefiles/admin/`
   * **Plutonium T6 (BO2):** `./plutonium/storage/t6/`
+  * **Alterware T7x (BO3):** `./gamefiles/zone/`
 
 ***
 
@@ -167,7 +182,7 @@ The container includes a robust health check script that verifies the server is 
 4. Sending an RCON `status` command to the server.
 5. Checking for a valid response.
 
-The health check is enabled by default. You can disable it by setting the corresponding environment variable (`PLUTO_HEALTHCHECK` or `IW4X_HEALTHCHECK`) to `"false"`. This can be useful for debugging or if you do not wish to set an RCON password.
+The health check is enabled by default. You can disable it by setting the corresponding environment variable (`PLUTO_HEALTHCHECK`, `IW4X_HEALTHCHECK`, or `ALTER_HEALTHCHECK`) to `"false"`. This can be useful for debugging or if you do not wish to set an RCON password.
 
 Please note that for the healthcheck to work correctly, games that support RCon whitelists need to have localhost permitted and/or "127.0.0.1"
 

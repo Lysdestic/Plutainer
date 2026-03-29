@@ -22,8 +22,15 @@ detect_game_type() {
     CONFIG_FILE="${IW4X_CONFIG_FILE}"
     CUSTOM_PORT="${IW4X_PORT}"
     HEALTHCHECK_FLAG="${IW4X_HEALTHCHECK}"
+  elif [[ -n "${ALTER_GAME}" ]]; then
+    GAME_TYPE="alterware"
+    GAME_NAME="${ALTER_GAME}"
+    BASE_GAME="${ALTER_GAME}"
+    CONFIG_FILE="${ALTER_CONFIG_FILE}"
+    CUSTOM_PORT="${ALTER_PORT}"
+    HEALTHCHECK_FLAG="${ALTER_HEALTHCHECK}"
   else
-    echo "[ERROR] No game type detected. Set PLUTO_GAME or IW4X_GAME." >&2
+    echo "[ERROR] No game type detected. Set PLUTO_GAME, IW4X_GAME, or ALTER_GAME." >&2
     return 1
   fi
 }
@@ -37,6 +44,7 @@ resolve_default_port() {
     "iw5")       DEFAULT_PORT="27016" ;;
     "t4" | "t5") DEFAULT_PORT="28960" ;;
     "t6")        DEFAULT_PORT="4976"  ;;
+    "t7x")       DEFAULT_PORT="27017" ;;
     *)
       echo "[ERROR] Could not determine default port for game '${base_game}'." >&2
       return 1
@@ -57,6 +65,15 @@ resolve_config_path() {
       ;;
     "iw4x")
       CONFIG_PATH="/home/plutainer/app/gamefiles/userraw/${CONFIG_FILE}"
+      ;;
+    "alterware")
+      case "${BASE_GAME}" in
+        "t7x") CONFIG_PATH="/home/plutainer/app/gamefiles/zone/${CONFIG_FILE}" ;;
+        *)
+          echo "[ERROR] Unknown Alterware game '${BASE_GAME}'." >&2
+          return 1
+          ;;
+      esac
       ;;
     *)
       echo "[ERROR] Unknown game type '${GAME_TYPE}'." >&2
