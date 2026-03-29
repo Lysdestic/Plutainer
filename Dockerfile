@@ -1,5 +1,5 @@
-# Use the latest Debian image as the base
-FROM debian:latest
+# Use Debian Trixie as the base (pinned for reproducibility)
+FROM debian:trixie
 
 # Set environment variables to prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -44,12 +44,12 @@ RUN wget https://github.com/iw4x/launcher/releases/latest/download/iw4x-launcher
     chmod +x iw4x-launcher
     # Because for some reason they decided to archive it without execute permissions...
 
-# Copy all necessary scripts and the python module into the image
-COPY --chown=plutainer:plutainer entrypoint.sh plutoentry.sh iw4xentry.sh healthcheck.sh pyquake3.py .
-RUN chmod +x entrypoint.sh healthcheck.sh plutoentry.sh iw4xentry.sh
+# Copy all scripts and the python module into the image
+COPY --chown=plutainer:plutainer scripts/ .
+RUN chmod +x entrypoint.sh healthcheck.sh plutoentry.sh iw4xentry.sh rcon-cli game-config.sh
 
-# Set the stop signal to SIGKILL to force termination
-STOPSIGNAL SIGKILL
+# Set the stop signal to allow graceful shutdown
+STOPSIGNAL SIGTERM
 
 # Add the healthcheck instruction
 HEALTHCHECK --interval=1m --timeout=10s --start-period=1m --retries=3 \

@@ -5,6 +5,9 @@
 # IW4x game server.
 #
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/game-config.sh"
+
 # --- Step 1: Update IW4x Files ---
 mkdir -p /home/plutainer/app/gamefiles
 ln -sf /home/plutainer/gamefiles/{main,zone,binkw32.dll,localization.txt,mss32.dll} /home/plutainer/app/gamefiles/
@@ -31,15 +34,15 @@ VALID_GAMES="iw4x"
 IW4X_SERVER_NAME=${IW4X_SERVER_NAME:-"IW4x Docker Server"}
 
 if [[ -z "${IW4X_GAME}" ]]; then
-  echo "ERROR: The 'IW4X_GAME' environment variable is not set." >&2
+  echo "[ERROR] The 'IW4X_GAME' environment variable is not set." >&2
   MISSING_VAR=true
 elif [[ ! " ${VALID_GAMES} " =~ " ${IW4X_GAME} " ]]; then
-  echo "ERROR: Invalid value for 'IW4X_GAME': \"${IW4X_GAME}\"." >&2
+  echo "[ERROR] Invalid value for 'IW4X_GAME': \"${IW4X_GAME}\"." >&2
   INVALID_VAR=true
 fi
 
 if [[ -z "${IW4X_CONFIG_FILE}" ]]; then
-  echo "ERROR: The 'IW4X_CONFIG_FILE' environment variable is not set." >&2
+  echo "[ERROR] The 'IW4X_CONFIG_FILE' environment variable is not set." >&2
   echo "  > You must specify the name of the server configuration file (e.g., 'server.cfg')." >&2
   MISSING_VAR=true
 fi
@@ -57,8 +60,9 @@ fi
 
 # --- Step 3: Set Default Port (If Needed) ---
 if [[ -z "${IW4X_PORT}" ]]; then
-  echo "Optional IW4X_PORT is not set, defaulting to 28960 for ${IW4X_GAME}..."
-  IW4X_PORT="28960"
+  echo "Optional IW4X_PORT is not set, determining default for ${IW4X_GAME}..."
+  resolve_default_port "iw4x" || { sleep 10; exit 1; }
+  IW4X_PORT="${DEFAULT_PORT}"
   echo "Default port set to ${IW4X_PORT}"
 fi
 

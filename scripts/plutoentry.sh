@@ -5,6 +5,9 @@
 # Plutonium game server.
 #
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/game-config.sh"
+
 # --- Step 1: Update Plutonium Files ---
 BASE_GAME=${PLUTO_GAME%??}
 SOURCE_DIR="/home/plutainer/gamefiles"
@@ -30,7 +33,7 @@ case "$BASE_GAME" in
     ln -sf "$SOURCE_DIR"/{zone,binkw32.dll,codlogo.bmp} "$DEST_DIR"/
     ;;
   *)
-    echo "Error: Unknown BASE_GAME value '$BASE_GAME'." >&2
+    echo "[ERROR] Unknown BASE_GAME value '$BASE_GAME'." >&2
     exit 1
     ;;
 esac
@@ -58,21 +61,21 @@ VALID_GAMES="iw5mp t4mp t4sp t5mp t5sp t6mp t6zm"
 PLUTO_SERVER_NAME=${PLUTO_SERVER_NAME:-"Plutonium Docker Server"}
 
 if [[ -z "${PLUTO_GAME}" ]]; then
-  echo "ERROR: The 'PLUTO_GAME' environment variable is not set." >&2
+  echo "[ERROR] The 'PLUTO_GAME' environment variable is not set." >&2
   MISSING_VAR=true
 elif [[ ! " ${VALID_GAMES} " =~ " ${PLUTO_GAME} " ]]; then
-  echo "ERROR: Invalid value for 'PLUTO_GAME': \"${PLUTO_GAME}\"." >&2
+  echo "[ERROR] Invalid value for 'PLUTO_GAME': \"${PLUTO_GAME}\"." >&2
   INVALID_VAR=true
 fi
 
 if [[ -z "${PLUTO_SERVER_KEY}" ]]; then
-  echo "ERROR: The 'PLUTO_SERVER_KEY' environment variable is not set." >&2
+  echo "[ERROR] The 'PLUTO_SERVER_KEY' environment variable is not set." >&2
   echo "  > You must provide a server key from https://platform.plutonium.pw/serverkeys" >&2
   MISSING_VAR=true
 fi
 
 if [[ -z "${PLUTO_CONFIG_FILE}" ]]; then
-  echo "ERROR: The 'PLUTO_CONFIG_FILE' environment variable is not set." >&2
+  echo "[ERROR] The 'PLUTO_CONFIG_FILE' environment variable is not set." >&2
   echo "  > You must specify the name of the server configuration file (e.g., 'dedicated.cfg')." >&2
   MISSING_VAR=true
 fi
@@ -91,22 +94,8 @@ fi
 # --- Step 3: Set Game-Aware Default Port (If Needed) ---
 if [[ -z "${PLUTO_PORT}" ]]; then
   echo "Optional PLUTO_PORT is not set, determining default port for ${BASE_GAME}..."
-  case "${BASE_GAME}" in
-    "iw5")
-      PLUTO_PORT="27016"
-      ;;
-    "t4" | "t5")
-      PLUTO_PORT="28960"
-      ;;
-    "t6")
-      PLUTO_PORT="4976"
-      ;;
-    *)
-      echo "ERROR: Could not determine a default port for game '${PLUTO_GAME}'." >&2
-	  sleep 10
-      exit 1
-      ;;
-  esac
+  resolve_default_port "${BASE_GAME}" || { sleep 10; exit 1; }
+  PLUTO_PORT="${DEFAULT_PORT}"
   echo "Default port set to ${PLUTO_PORT}"
 fi
 

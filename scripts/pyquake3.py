@@ -53,7 +53,7 @@ class PyQuake3(object):
     def set_server(self, server):
         try:
             self.address, self.port = server.split(':')
-        except:
+        except (ValueError, AttributeError):
             raise ValueError('Server address format must be: "address:port"')
         self.port = int(self.port)
         self.sock.connect((self.address, self.port))
@@ -135,7 +135,6 @@ class PyQuake3(object):
             # Encode the player string to bytes to match against the bytes-regex
             match = self.player_reo.match(player.encode('utf-8', 'ignore'))
             if not match:
-                print('couldnt match', player)
                 continue
             # The matched groups will be bytes, so decode them back to strings
             frags, ping, name = match.groups()
