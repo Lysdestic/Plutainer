@@ -32,8 +32,22 @@ RUN apt-get update && \
 
 # Create a non-root user for running the server
 RUN useradd -m plutainer
+
+# Wine environment: suppress debug noise, prevent Gecko/Mono install prompts
+# (which hang in non-interactive containers), and set virtual display for Xvfb
+ENV WINEDEBUG=-all \
+    WINEDLLOVERRIDES="mscoree,mshtml=" \
+    DISPLAY=:99
+
 USER plutainer
 WORKDIR /home/plutainer/.plutainer
+
+# Initialize Wine prefix during build so it doesn't hang at runtime
+RUN Xvfb :99 -screen 0 320x240x24 & \
+    sleep 1 && \
+    wineboot -u && \
+    wineserver -w && \
+    rm -f /tmp/.X99-lock
 
 # Download and extract the updaters
 RUN wget https://github.com/mxve/plutonium-updater.rs/releases/latest/download/plutonium-updater-x86_64-unknown-linux-gnu.tar.gz -O plutonium-updater.tar.gz && \

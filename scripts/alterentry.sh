@@ -100,8 +100,8 @@ fi
 # T7x requires a display even in dedicated/headless mode, so start a virtual
 # framebuffer for Wine before launching
 echo "Starting virtual display..."
-Xvfb :99 -screen 0 1024x768x24 &
-export DISPLAY=:99
+Xvfb :99 -screen 0 320x240x24 &
+sleep 1
 
 echo "Starting T7x Server: ${ALTER_SERVER_NAME}"
 echo "EXECUTING: wine t7x.exe ${CMD_ARGS[@]}"
