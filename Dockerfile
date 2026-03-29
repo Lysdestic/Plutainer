@@ -50,9 +50,10 @@ RUN wget https://github.com/mxve/plutonium-updater.rs/releases/latest/download/p
 COPY --chown=plutainer:plutainer scripts/ .
 RUN chmod +x entrypoint.sh healthcheck.sh plutoentry.sh iw4xentry.sh alterentry.sh rcon-cli game-config.sh
 
-# Add rcon-cli to PATH so it can be invoked without a full path via docker exec
+# Add rcon-cli to PATH and create X11 socket directory for Xvfb (T7x)
 USER root
-RUN ln -s /home/plutainer/.plutainer/rcon-cli /usr/local/bin/rcon-cli
+RUN ln -s /home/plutainer/.plutainer/rcon-cli /usr/local/bin/rcon-cli && \
+    mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
 USER plutainer
 
 # Set the stop signal to allow graceful shutdown
