@@ -11,9 +11,12 @@ import os
 import subprocess
 import sys
 
-import pyquake3
+# Resolve symlinks so SCRIPT_DIR points to the real location,
+# not the symlink's directory (e.g. /usr/local/bin/)
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, SCRIPT_DIR)
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+import pyquake3
 
 
 def resolve_config():
