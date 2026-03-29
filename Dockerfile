@@ -15,7 +15,8 @@ RUN apt-get install -y --no-install-recommends \
     ca-certificates \
     tar \
     python3 \
-    xvfb
+    xvfb \
+    xauth
 
 # Add WineHQ repository key
 RUN mkdir -pm755 /etc/apt/keyrings && \
