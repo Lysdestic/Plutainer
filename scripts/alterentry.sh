@@ -85,7 +85,6 @@ fi
 
 # --- Step 5: Build Server Command Arguments ---
 declare -a CMD_ARGS=(
-    -dedicated
     -headless
     +set net_port "${ALTER_PORT}"
     +set logfile "2"
