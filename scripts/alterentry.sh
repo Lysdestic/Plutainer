@@ -16,12 +16,16 @@ mkdir -p "$DEST_DIR"
 echo "Linking files for t7x (Black Ops III)..."
 ln -sf "$SOURCE_DIR"/{codlogo.bmp,machinecfg,steam_api64.dll,steamclient64.dll,tier0_s64.dll,vstdlib_s64.dll} "$DEST_DIR"/
 
-# T7x expects BlackOps3.exe or BlackOps3_UnrankedDedicatedServer.exe in its directory
-for exe in BlackOps3.exe BlackOps3_UnrankedDedicatedServer.exe; do
-  if [[ -f "$SOURCE_DIR/$exe" ]]; then
-    ln -sf "$SOURCE_DIR/$exe" "$DEST_DIR"/
-  fi
-done
+# T7x detects dedicated server mode by checking which executables exist:
+#   is_server = has_flag("dedicated") || (!has_client && has_server)
+# Under Wine, flag detection via GetCommandLineW() can be unreliable, so we
+# only symlink the server binary to guarantee the fallback path fires.
+if [[ -f "$SOURCE_DIR/BlackOps3_UnrankedDedicatedServer.exe" ]]; then
+  ln -sf "$SOURCE_DIR/BlackOps3_UnrankedDedicatedServer.exe" "$DEST_DIR"/
+elif [[ -f "$SOURCE_DIR/BlackOps3.exe" ]]; then
+  echo "[WARN] BlackOps3_UnrankedDedicatedServer.exe not found, falling back to BlackOps3.exe" >&2
+  ln -sf "$SOURCE_DIR/BlackOps3.exe" "$DEST_DIR"/
+fi
 
 # Create zone/ as a real directory with symlinked contents so configs can be
 # placed alongside the read-only game data (same approach as T4's main/)
