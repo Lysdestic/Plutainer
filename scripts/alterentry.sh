@@ -85,7 +85,8 @@ fi
 
 # --- Step 5: Build Server Command Arguments ---
 declare -a CMD_ARGS=(
-    -headless
+    -dedicated
+    +set fs_game "${ALTER_MOD:-}"
     +set net_port "${ALTER_PORT}"
     +set logfile "2"
     +exec "${ALTER_CONFIG_FILE}"

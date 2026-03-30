@@ -81,6 +81,7 @@ See above for the game tags to use. (eg, `t6zm`)
 | `ALTER_CONFIG_FILE` | **Required.** The filename of your server's configuration file (placed in `zone/`). | |
 | `ALTER_SERVER_NAME` | The name of your server. | "T7x Docker Server" |
 | `ALTER_PORT` | The network port for the server. | `27017` |
+| `ALTER_MOD` | The Steam Workshop ID of the mod to load. Omit this if no mod needed. | |
 | `ALTER_AUTO_UPDATE` | Set to `"false"` to prevent the container from checking for updates on start. | `true` |
 | `ALTER_HEALTHCHECK` | Set to `"false"` to disable the health check. | `true` |
 | `ALTER_EXTRA_ARGS` | Allows you to extend the start param. | |

@@ -146,6 +146,24 @@ services:
     networks:
       - games-net
   
+  t7x-zm-1:
+    image: ghcr.io/ayymoss/plutainer:latest
+    container_name: t7x-zm-1
+    restart: unless-stopped
+    ports:
+      - "27017:27017/udp"
+    volumes:
+      - /opt/GameFiles/T7xServerFiles:/home/plutainer/gamefiles:ro
+      - ./t7x-zm-1:/home/plutainer/app
+    environment:
+      - ALTER_GAME=t7x
+      - ALTER_CONFIG_FILE=server_zm.cfg
+      #- ALTER_PORT=27017
+      #- ALTER_MOD=2833912385
+      #- ALTER_AUTO_UPDATE=false
+    networks:
+      - games-net
+
   iw4madmin:
     image: ghcr.io/raidmax/iw4madmin:latest
     container_name: iw4madmin
