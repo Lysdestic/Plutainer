@@ -15,13 +15,13 @@ ln -sf /home/plutainer/gamefiles/{main,zone,binkw32.dll,localization.txt,mss32.d
 IW4X_CACHE_LOC="/home/plutainer/app/gamefiles/launcher/cache.json"
 if [[ ! -f "${IW4X_CACHE_LOC}" ]]; then
   echo "First container run detected. Downloading iw4x (IW4x) initial files... This may take a few minutes."
-  /home/plutainer/.plutainer/iw4x-launcher --path /home/plutainer/app/gamefiles --update
+  /home/plutainer/.plutainer/iw4x-launcher --path /home/plutainer/app/gamefiles --skip-launch --no-self-update
 else
   if [[ "${IW4X_AUTO_UPDATE}" == "false" ]]; then
     echo "Skipping iw4x update because IW4X_AUTO_UPDATE is set to 'false'."
   else
     echo "Checking for iw4x updates... This may take a few minutes if an update is available."
-    /home/plutainer/.plutainer/iw4x-launcher --path /home/plutainer/app/gamefiles --update
+    /home/plutainer/.plutainer/iw4x-launcher --path /home/plutainer/app/gamefiles --skip-launch --no-self-update
   fi
 fi
 

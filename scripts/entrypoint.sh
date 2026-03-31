@@ -22,13 +22,9 @@ echo
 if [[ -n "${PLUTO_GAME}" ]]; then
   echo "Plutonium game type detected. Handing off to Plutonium entrypoint..."
   exec /home/plutainer/.plutainer/plutoentry.sh
-# TODO: Re-enable once iw4x/launcher download issue is resolved upstream
 elif [[ -n "${IW4X_GAME}" ]]; then
-  echo "[ERROR] IW4x support is temporarily disabled due to an upstream launcher issue." >&2
-  echo "  > See: https://github.com/iw4x/launcher/issues" >&2
-  echo "Exiting in 10 seconds..." >&2
-  sleep 10
-  exit 1
+  echo "IW4x game type detected. Handing off to IW4x entrypoint..."
+  exec /home/plutainer/.plutainer/iw4xentry.sh
 elif [[ -n "${ALTER_GAME}" ]]; then
   echo "Alterware game type detected (${ALTER_GAME}). Handing off to Alterware entrypoint..."
   exec /home/plutainer/.plutainer/alterentry.sh

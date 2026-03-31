@@ -14,6 +14,8 @@ RUN apt-get install -y --no-install-recommends \
     gpg \
     ca-certificates \
     tar \
+    xz-utils \
+    jq \
     python3 \
     xvfb \
     xauth
@@ -57,11 +59,13 @@ RUN wget https://github.com/mxve/plutonium-updater.rs/releases/latest/download/p
     tar -xzvf plutonium-updater.tar.gz && \
     rm plutonium-updater.tar.gz
 
-# TODO: Re-enable once iw4x/launcher download issue is resolved upstream
-# RUN wget https://github.com/iw4x/launcher/releases/latest/download/iw4x-launcher-x86_64-unknown-linux-gnu.tar.gz -O iw4x-updater.tar.gz && \
-#     tar -xzvf iw4x-updater.tar.gz && \
-#     rm iw4x-updater.tar.gz && \
-#     chmod +x iw4x-launcher
+# Download iw4x-launcher (asset names vary per release, so query the API)
+RUN IW4X_URL=$(wget -qO- https://api.github.com/repos/iw4x/launcher/releases/latest \
+      | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url') && \
+    wget -O iw4x-launcher.tar.xz "$IW4X_URL" && \
+    tar -xJf iw4x-launcher.tar.xz --strip-components=1 && \
+    rm iw4x-launcher.tar.xz && \
+    chmod +x iw4x-launcher
 
 # Copy all scripts and the python module into the image
 COPY --chown=plutainer:plutainer scripts/ .
