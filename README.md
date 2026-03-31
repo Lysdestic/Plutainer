@@ -101,6 +101,8 @@ To persist your server configurations and provide the necessary game files, you 
   * **Plutonium T6 (BO2):** `./plutonium/storage/t6/`
   * **Alterware T7x (BO3):** `./gamefiles/zone/`
 
+> **T7x Note:** Your game files must include the `t7x/` folder containing the lobby scripts (specifically `t7x/lobby_scripts/`). Without these, `sv_lobby_mode` will be ignored and the server will default to MP mode. If you don't have this folder, grab it from the [T7x example server configs](https://github.com/Dss0/t7-server-config).
+
 ***
 
 ### Permissioning

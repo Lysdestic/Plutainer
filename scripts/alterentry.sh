@@ -32,11 +32,6 @@ fi
 mkdir -p "$DEST_DIR/zone"
 ln -sf "$SOURCE_DIR"/zone/* "$DEST_DIR"/zone/
 
-# Install the lobby script that routes sv_lobby_mode to the correct lobby type.
-# Without this, CreateDedicatedModsLobby defaults to MP mode regardless of config.
-LOBBY_SCRIPT_DIR="$DEST_DIR/t7x/lobby_scripts/server_lobby_selector"
-mkdir -p "$LOBBY_SCRIPT_DIR"
-cp "$SCRIPT_DIR/lobby_init.lua" "$LOBBY_SCRIPT_DIR/__init__.lua"
 
 # --- Step 2: Download/Update T7x ---
 ALTER_EXE_LOC="$DEST_DIR/t7x.exe"
