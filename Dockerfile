@@ -69,7 +69,7 @@ RUN IW4X_URL=$(wget -qO- https://api.github.com/repos/iw4x/launcher/releases/lat
 
 # Copy all scripts and the python module into the image
 COPY --chown=plutainer:plutainer scripts/ .
-RUN chmod +x entrypoint.sh healthcheck.sh plutoentry.sh iw4xentry.sh alterentry.sh rcon-cli game-config.sh
+RUN chmod +x entrypoint.sh healthcheck.sh plutoentry.sh iw4xentry.sh alterentry.sh log-watcher.sh rcon-cli game-config.sh
 
 # Add rcon-cli to PATH so it can be invoked without a full path via docker exec
 USER root

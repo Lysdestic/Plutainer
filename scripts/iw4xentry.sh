@@ -92,6 +92,8 @@ fi
 CMD_ARGS+=(+map_rotate)
 
 # --- Step 5: Launch the iw4x Server ---
+/home/plutainer/.plutainer/log-watcher.sh &
+
 echo "Starting ${IW4X_GAME} Server: ${IW4X_SERVER_NAME}"
 echo "EXECUTING: wine iw4x.exe ${CMD_ARGS[@]}"
 exec wine iw4x.exe "${CMD_ARGS[@]}"

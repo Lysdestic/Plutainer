@@ -41,11 +41,13 @@ Everything runs as the `plutainer` user from `/home/plutainer/.plutainer`.
 
 5. **`game-config.sh`** — Shared shell library sourced by all other scripts. Single source of truth for game detection, port defaults, config path resolution, and RCON password extraction.
 
-6. **`healthcheck.sh`** — Sources `game-config.sh`, then uses `pyquake3.py` to send an RCON `status` command. Can be disabled with `PLUTO_HEALTHCHECK=true`, `IW4X_HEALTHCHECK=true`, or `ALTER_HEALTHCHECK=true`.
+6. **`log-watcher.sh`** — Background poller started by each entrypoint before `exec wine`. Maintains stable symlinks at `/home/plutainer/app/logs/<name>` pointing at the active game log (e.g. `games_mp.log`, `games_zm.log`). Uses container boot time as a mtime cutoff so stale logs from prior sessions and abandoned mod dirs are ignored. Disable with `PLUTAINER_LOG_SYMLINKS=false`; poll interval via `PLUTAINER_LOG_POLL_INTERVAL` (default 2s).
 
-7. **`rcon-cli`** — Python script providing interactive and one-shot RCON access via `docker exec`. Calls `game-config.sh` to resolve port/credentials. Supports Plutonium, IW4x, and Alterware.
+7. **`healthcheck.sh`** — Sources `game-config.sh`, then uses `pyquake3.py` to send an RCON `status` command. Can be disabled with `PLUTO_HEALTHCHECK=true`, `IW4X_HEALTHCHECK=true`, or `ALTER_HEALTHCHECK=true`.
 
-7. **`pyquake3.py`** — Python 3 Quake 3 protocol library (UDP). Used by the health check and `rcon-cli` for RCON queries.
+8. **`rcon-cli`** — Python script providing interactive and one-shot RCON access via `docker exec`. Calls `game-config.sh` to resolve port/credentials. Supports Plutonium, IW4x, and Alterware.
+
+9. **`pyquake3.py`** — Python 3 Quake 3 protocol library (UDP). Used by the health check and `rcon-cli` for RCON queries.
 
 ## Game-Specific Behavior
 
@@ -60,4 +62,5 @@ For Plutonium, `BASE_GAME` is derived by stripping the last two chars from `PLUT
 
 - `/home/plutainer/gamefiles` — bind-mounted read-only game files from host
 - `/home/plutainer/app` — persistent volume (gamefiles symlinks, plutonium data, configs, logs)
+- `/home/plutainer/app/logs` — stable symlinks to active game logs, maintained by `log-watcher.sh`. Host-side IW4MAdmin should bind-mount this dir and read logs from there instead of reaching into nested mod/storage paths.
 - `/home/plutainer/.plutainer` — working directory containing scripts, updaters, and pyquake3

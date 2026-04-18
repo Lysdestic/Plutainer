@@ -132,6 +132,8 @@ else
 fi
 
 # --- Step 5: Launch the Plutonium Server ---
+/home/plutainer/.plutainer/log-watcher.sh &
+
 echo "Starting Plutonium ${PLUTO_GAME} Server: ${PLUTO_SERVER_NAME}"
 echo "EXECUTING: wine bin/plutonium-bootstrapper-win32.exe ${CMD_ARGS[@]}"
 exec wine bin/plutonium-bootstrapper-win32.exe "${CMD_ARGS[@]}"

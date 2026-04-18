@@ -109,6 +109,8 @@ rm -f /tmp/.X99-lock
 Xvfb :99 -screen 0 320x240x24 &
 sleep 1
 
+/home/plutainer/.plutainer/log-watcher.sh &
+
 echo "Starting T7x Server: ${ALTER_SERVER_NAME}"
 echo "EXECUTING: wine t7x.exe ${CMD_ARGS[@]}"
 exec wine t7x.exe "${CMD_ARGS[@]}"
