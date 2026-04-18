@@ -59,12 +59,17 @@ RUN wget https://github.com/mxve/plutonium-updater.rs/releases/latest/download/p
     tar -xzvf plutonium-updater.tar.gz && \
     rm plutonium-updater.tar.gz
 
-# Download iw4x-launcher (asset names vary per release, so query the API)
+# Download iw4x-launcher (asset names vary per release, so query the API).
+# Filter: launcher archive only, glibc Linux build, .tar.xz. Excludes the
+# "release-tool-*" assets added in v1.1.8-b.16+ that also contain "linux".
 RUN IW4X_URL=$(wget -qO- https://api.github.com/repos/iw4x/launcher/releases/latest \
-      | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url') && \
+      | jq -r '.assets[] | select(.name | test("^launcher-.*linux-glibc\\.tar\\.xz$")) | .browser_download_url') && \
     wget -O iw4x-launcher.tar.xz "$IW4X_URL" && \
-    tar -xJf iw4x-launcher.tar.xz --strip-components=1 && \
-    rm iw4x-launcher.tar.xz && \
+    mkdir -p iw4x-launcher-extract && \
+    tar -xJf iw4x-launcher.tar.xz -C iw4x-launcher-extract && \
+    BIN=$(find iw4x-launcher-extract -type f \( -name 'iw4x-launcher' -o -name 'launcher' \) | head -n1) && \
+    mv "$BIN" iw4x-launcher && \
+    rm -rf iw4x-launcher.tar.xz iw4x-launcher-extract && \
     chmod +x iw4x-launcher
 
 # Copy all scripts and the python module into the image
