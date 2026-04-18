@@ -61,10 +61,14 @@ while true; do
 
     if [[ -n "$newest_path" && "$newest_path" != "${CURRENT_TARGET[$name]:-}" ]]; then
       link="$STABLE_DIR/$name"
+      # Relative target so the symlink resolves the same on host, in this
+      # container, and in a sidecar container (e.g. IW4MAdmin) regardless of
+      # where the app/ volume is mounted.
+      rel_target=$(realpath --relative-to="$STABLE_DIR" "$newest_path")
       rm -f "$link"
-      ln -s "$newest_path" "$link"
+      ln -s "$rel_target" "$link"
       CURRENT_TARGET[$name]=$newest_path
-      echo "[log-watcher] $name -> $newest_path"
+      echo "[log-watcher] $name -> $rel_target"
     fi
   done
 
