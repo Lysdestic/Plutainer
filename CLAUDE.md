@@ -41,7 +41,7 @@ Everything runs as the `plutainer` user from `/home/plutainer/.plutainer`.
 
 5. **`game-config.sh`** — Shared shell library sourced by all other scripts. Single source of truth for game detection, port defaults, config path resolution, and RCON password extraction.
 
-6. **`log-watcher.sh`** — Background poller started by each entrypoint before `exec wine`. Maintains stable symlinks at `/home/plutainer/app/logs/<name>` pointing at the active game log (e.g. `games_mp.log`, `games_zm.log`). Uses container boot time as a mtime cutoff so stale logs from prior sessions and abandoned mod dirs are ignored. Disable with `PLUTAINER_LOG_SYMLINKS=false`; poll interval via `PLUTAINER_LOG_POLL_INTERVAL` (default 2s).
+6. **`log-watcher.sh`** — Background poller started by each entrypoint before `exec wine`. Discovers every `*.log` under `/home/plutainer/app/` (excluding `app/logs/` itself to avoid cycles) and maintains relative symlinks at `/home/plutainer/app/logs/<basename>` pointing at the active one. Active = newest mtime >= container boot time, so stale logs from prior sessions and abandoned mod dirs are ignored. Agnostic to log name (handles user-defined names like `games_koth.log`). Symlinks are relative so they resolve the same on host, this container, or a sidecar IW4MAdmin container. Disable with `PLUTAINER_LOG_SYMLINKS=false`; poll interval via `PLUTAINER_LOG_POLL_INTERVAL` (default 2s).
 
 7. **`healthcheck.sh`** — Sources `game-config.sh`, then uses `pyquake3.py` to send an RCON `status` command. Can be disabled with `PLUTO_HEALTHCHECK=true`, `IW4X_HEALTHCHECK=true`, or `ALTER_HEALTHCHECK=true`.
 
