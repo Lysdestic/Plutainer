@@ -49,6 +49,13 @@ fi
 
 cd "$DEST_DIR"
 
+# --- Step 2.5: Seed default configs from bundled community repo ---
+# Idempotent: cp -n means existing user files are never overwritten.
+# Skip with ALTER_SKIP_SEED=true.
+if [[ "${ALTER_SKIP_SEED}" != "true" ]]; then
+  seed_configs t7x /home/plutainer/app/gamefiles
+fi
+
 # --- Step 3: Validate Required Environment Variables ---
 MISSING_VAR=false
 INVALID_VAR=false

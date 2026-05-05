@@ -57,6 +57,7 @@ See above for the game tags to use. (eg, `t6zm`)
 | `PLUTO_MAX_CLIENTS` | **T5 Only!** The maximum number of players allowed. | |
 | `PLUTO_AUTO_UPDATE` | Set to `"false"` to prevent the container from checking for updates on start. | `true` |
 | `PLUTO_HEALTHCHECK` | Set to `"false"` to disable the health check. | `true` |
+| `PLUTO_SKIP_SEED` | Set to `"true"` to skip first-run config seeding. See [Bundled Config Seeds](#bundled-config-seeds). | `false` |
 | `PLUTO_EXTRA_ARGS` | Allows you to extend the start param. | |
 
 (eg. `- "PLUTO_EXTRA_ARGS=+set SOMETHING=1 +set SOMETHING_ELSE=FOO"`)
@@ -84,6 +85,7 @@ See above for the game tags to use. (eg, `t6zm`)
 | `ALTER_MOD` | The Steam Workshop ID of the mod to load. Omit this if no mod needed. | |
 | `ALTER_AUTO_UPDATE` | Set to `"false"` to prevent the container from checking for updates on start. | `true` |
 | `ALTER_HEALTHCHECK` | Set to `"false"` to disable the health check. | `true` |
+| `ALTER_SKIP_SEED` | Set to `"true"` to skip first-run config seeding. See [Bundled Config Seeds](#bundled-config-seeds). | `false` |
 | `ALTER_EXTRA_ARGS` | Allows you to extend the start param. | |
 
 ***
@@ -101,7 +103,21 @@ To persist your server configurations and provide the necessary game files, you 
   * **Plutonium T6 (BO2):** `./plutonium/storage/t6/`
   * **Alterware T7x (BO3):** `./gamefiles/zone/`
 
-> **T7x Note:** Your game files must include the `t7x/` folder containing the lobby scripts (specifically `t7x/lobby_scripts/`). Without these, `sv_lobby_mode` will be ignored and the server will default to MP mode. If you don't have this folder, grab it from the [T7x example server configs](https://github.com/Dss0/t7-server-config).
+### Bundled Config Seeds
+
+To make first-run setup painless, the image bundles default configs from community repos and copies them into the bind-mounted `app/` volume on container start. Files that already exist are **never overwritten** — existing user configs are always kept as-is.
+
+| Game | Source repo |
+| --- | --- |
+| Plutonium T4 | [xerxes-at/T4ServerConfigs](https://github.com/xerxes-at/T4ServerConfigs) |
+| Plutonium T5 | [xerxes-at/T5ServerConfig](https://github.com/xerxes-at/T5ServerConfig) |
+| Plutonium T6 | [xerxes-at/T6ServerConfigs](https://github.com/xerxes-at/T6ServerConfigs) |
+| Plutonium IW5 | [xerxes-at/IW5ServerConfig](https://github.com/xerxes-at/IW5ServerConfig) |
+| Alterware T7x | [Dss0/t7-server-config](https://github.com/Dss0/t7-server-config) (includes the `t7x/lobby_scripts/` required for `sv_lobby_mode` to work) |
+
+To opt out — for example if you manage configs entirely yourself and don't want any default files appearing in your bind mount — set `PLUTO_SKIP_SEED=true` (Plutonium) or `ALTER_SKIP_SEED=true` (Alterware).
+
+The seed snapshot is frozen at image build time. Pulling a newer image only seeds files that don't yet exist in your bind mount, so the upstream repo never silently overwrites your edits.
 
 ***
 

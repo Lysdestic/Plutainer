@@ -53,6 +53,17 @@ fi
 
 cd /home/plutainer/app/plutonium
 
+# --- Step 1.5: Seed default configs from bundled community repos ---
+# Idempotent: cp -n means existing user files are never overwritten.
+# Skip with PLUTO_SKIP_SEED=true.
+if [[ "${PLUTO_SKIP_SEED}" != "true" ]]; then
+  case "$BASE_GAME" in
+    t4)    seed_configs t4  /home/plutainer/app/gamefiles/main ;;
+    iw5)   seed_configs iw5 /home/plutainer/app/gamefiles/admin ;;
+    t5|t6) seed_configs "$BASE_GAME" /home/plutainer/app/plutonium/storage/"$BASE_GAME" ;;
+  esac
+fi
+
 # --- Step 2: Validate Required Environment Variables ---
 MISSING_VAR=false
 INVALID_VAR=false

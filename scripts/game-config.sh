@@ -82,6 +82,17 @@ resolve_config_path() {
   esac
 }
 
+# Copy bundled seed configs into a destination directory without overwriting
+# anything the user has already placed there.
+# Args: <game-key> <destination-dir>
+seed_configs() {
+  local game="$1" dest="$2"
+  local src="/home/plutainer/.plutainer/seed-configs/${game}"
+  [[ -d "$src" ]] || return 0
+  mkdir -p "$dest"
+  cp -rn "$src/." "$dest/" 2>/dev/null || true
+}
+
 # Extract the RCON password from a config file.
 # Sets RCON_PASSWORD. Requires CONFIG_PATH to be set.
 extract_rcon_password() {
