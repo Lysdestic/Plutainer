@@ -43,7 +43,7 @@ Everything runs as the `plutainer` user from `/home/plutainer/.plutainer`.
 
 6. **`log-watcher.sh`** — Background poller started by each entrypoint before `exec wine`. Discovers every `*.log` under `/home/plutainer/app/` (excluding `app/logs/` itself to avoid cycles) and maintains relative symlinks at `/home/plutainer/app/logs/<basename>` pointing at the active one. Active = newest mtime >= container boot time, so stale logs from prior sessions and abandoned mod dirs are ignored. Agnostic to log name (handles user-defined names like `games_koth.log`). Symlinks are relative so they resolve the same on host, this container, or a sidecar IW4MAdmin container. Disable with `PLUTAINER_LOG_SYMLINKS=false`; poll interval via `PLUTAINER_LOG_POLL_INTERVAL` (default 2s).
 
-7. **`healthcheck.sh`** — Sources `game-config.sh`, then uses `pyquake3.py` to send an RCON `status` command. Can be disabled with `PLUTO_HEALTHCHECK=true`, `IW4X_HEALTHCHECK=true`, or `ALTER_HEALTHCHECK=true`.
+7. **`healthcheck.sh`** — Sources `game-config.sh`, then uses `pyquake3.py` to send an RCON `status` command. Enabled by default; disable with `PLUTO_HEALTHCHECK=false`, `IW4X_HEALTHCHECK=false`, or `ALTER_HEALTHCHECK=false`.
 
 8. **`rcon-cli`** — Python script providing interactive and one-shot RCON access via `docker exec`. Calls `game-config.sh` to resolve port/credentials. Supports Plutonium, IW4x, and Alterware.
 

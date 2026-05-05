@@ -15,7 +15,7 @@ detect_game_type || exit 1
 echo "       - ${GAME_TYPE} server detected (${GAME_NAME})."
 
 # --- Step 2: Check if health checks are explicitly disabled ---
-if [[ "${HEALTHCHECK_FLAG}" == "true" ]]; then
+if [[ "${HEALTHCHECK_FLAG}" == "false" ]]; then
   echo "[INFO] Health check is disabled by environment variable."
   exit 0
 fi
