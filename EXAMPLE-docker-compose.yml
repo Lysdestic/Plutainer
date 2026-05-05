@@ -158,7 +158,7 @@ services:
     environment:
       - ALTER_GAME=t7x
       - ALTER_CONFIG_FILE=server_zm.cfg
-      #- ALTER_PORT=27017
+      - ALTER_PORT=27017
       #- ALTER_MOD=2833912385
       #- ALTER_AUTO_UPDATE=false
     networks:
