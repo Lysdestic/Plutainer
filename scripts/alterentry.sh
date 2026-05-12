@@ -30,7 +30,11 @@ fi
 # Create zone/ as a real directory with symlinked contents so configs can be
 # placed alongside the read-only game data (same approach as T4's main/)
 mkdir -p "$DEST_DIR/zone"
-ln -sf "$SOURCE_DIR"/zone/* "$DEST_DIR"/zone/
+# Guard the glob: bash leaves unmatched `*` literal, so an empty/missing
+# source zone/ would create a bogus symlink named `*`.
+if compgen -G "$SOURCE_DIR/zone/*" > /dev/null; then
+  ln -sf "$SOURCE_DIR"/zone/* "$DEST_DIR"/zone/
+fi
 
 
 # --- Step 2: Download/Update T7x ---
