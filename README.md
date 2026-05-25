@@ -4,6 +4,12 @@ This repository contains the necessary files to build and run dedicated game ser
 
 The container is available on GitHub Container Registry: `ghcr.io/ayymoss/plutainer:latest`
 
+> **Tag layout:**
+> - `:latest` (and the `:v2` alias) — current Plutainer v2. New volume layout, unified `PLUTAINER_*` environment variables. Built from `main`.
+> - `:v1-final` (and the `:v1` alias) — frozen snapshot of the old v1 image. Legacy `PLUTO_*`/`IW4X_*`/`ALTER_*` env vars, flat `app/gamefiles/` + `app/plutonium/` layout. Shows a deprecation banner on every start. No further updates, fixes, or security patches.
+>
+> **Upgrading from v1?** See [MIGRATION.md](MIGRATION.md) — covers the env var rename, the volume migration command (one `docker run`), and how to pin `:v1-final` if you want to defer the migration.
+
 ## Overview
 
 The primary goal of this Docker image is to simplify the setup and management of dedicated servers for the following games:
@@ -33,79 +39,128 @@ Instead of using a long `docker run` command, it is highly recommended to use `d
 
 ### Environment Variables
 
-The container is configured entirely through environment variables. You must specify one of `PLUTO_GAME`, `IW4X_GAME`, or `ALTER_GAME`.
+The container is configured entirely through environment variables. You must set `PLUTAINER_GAME` to one of the supported game tags.
 
-#### General Variables
-
-| Variable | Description | Default |
-| --- | --- | --- |
-| `PLUTO_GAME` | The Plutonium game to run. **Required** for Plutonium. | |
-| `IW4X_GAME` | The IW4x game to run. Must be `iw4x`. **Required** for IW4x. | |
-| `ALTER_GAME` | The Alterware game to run. Must be `t7x`. **Required** for Alterware. | |
-
-See above for the game tags to use. (eg, `t6zm`)
-
-#### Plutonium Variables
+#### Unified (`PLUTAINER_*`) — apply to all games
 
 | Variable | Description | Default |
 | --- | --- | --- |
-| `PLUTO_SERVER_KEY` | **Required.** Your server key from the Plutonium website. | |
-| `PLUTO_CONFIG_FILE` | **Required.** The filename of your server's configuration file. | |
-| `PLUTO_SERVER_NAME` | The name of your server. | "Plutonium Docker Server" |
-| `PLUTO_PORT` | The network port for the server. | Game-specific default (e.g., 4976 for T6) |
-| `PLUTO_MOD` | The name of the mod folder to load. Omit this if no mod needed. | |
-| `PLUTO_MAX_CLIENTS` | **T5 Only!** The maximum number of players allowed. | |
-| `PLUTO_AUTO_UPDATE` | Set to `"false"` to prevent the container from checking for updates on start. | `true` |
-| `PLUTO_HEALTHCHECK` | Set to `"false"` to disable the health check. | `true` |
-| `PLUTO_SKIP_SEED` | Set to `"true"` to skip first-run config seeding. See [Bundled Config Seeds](#bundled-config-seeds). | `false` |
-| `PLUTO_EXTRA_ARGS` | Allows you to extend the start param. | |
+| `PLUTAINER_GAME` | **Required.** Game tag: `t4mp`, `t4sp`, `t5mp`, `t5sp`, `t6mp`, `t6zm`, `iw5mp`, `iw4x`, or `t7x`. | |
+| `PLUTAINER_CONFIG_FILE` | **Required.** Filename of your server's config (e.g., `dedicated.cfg`). Lives in `app/configs/` (see [Volume Layout](#volume-layout)). | |
+| `PLUTAINER_PORT` | Network port for the server. | Game-specific (see [Default Ports](#default-ports)). |
+| `PLUTAINER_SERVER_NAME` | Display name used in startup logs. | Game-family-specific default. |
+| `PLUTAINER_MOD` | Mod folder name (Plutonium/IW4x) or Steam Workshop ID (T7x). Omit if no mod. | |
+| `PLUTAINER_AUTO_UPDATE` | Set to `"false"` to skip update checks at startup. | `true` |
+| `PLUTAINER_HEALTHCHECK` | Set to `"false"` to disable the RCON health check. | `true` |
+| `PLUTAINER_SKIP_SEED` | Set to `"true"` to skip first-run [config seeding](#bundled-config-seeds). | `false` |
+| `PLUTAINER_EXTRA_ARGS` | Extra arguments appended to the launch command. | |
+| `PLUTAINER_USE_RAW_CONFIGS` | Set to `"true"` to put cfg files directly in the engine path under `app/runtime/...` and skip the `app/configs/` symlink system. See [Raw Configs Mode](#raw-configs-mode). | `false` |
+| `PLUTAINER_LOG_SYMLINKS` | Set to `"false"` to disable the [log symlink watcher](#log-symlinks). | `true` |
+| `PLUTAINER_LOG_POLL_INTERVAL` | Seconds between log watcher polls. | `2` |
 
-(eg. `- "PLUTO_EXTRA_ARGS=+set SOMETHING=1 +set SOMETHING_ELSE=FOO"`)
+#### Game-specific (unique to one stack)
 
-#### IW4x Variables
+These cannot be unified because they only apply to a single engine family:
 
-| Variable | Description | Default |
+| Variable | Description | Applies to |
 | --- | --- | --- |
-| `IW4X_CONFIG_FILE` | **Required.** The filename of your server's configuration file. | |
-| `IW4X_SERVER_NAME` | The name of your server. | "IW4x Docker Server" |
-| `IW4X_PORT` | The network port for the server. | `28960` |
-| `IW4X_MOD` | The name of the mod folder to load. Omit this if no mod needed. | |
-| `IW4X_AUTO_UPDATE` | Set to `"false"` to prevent the container from checking for updates on start. | `true` |
-| `IW4X_HEALTHCHECK` | Set to `"false"` to disable the health check. | `true` |
-| `IW4X_NET_LOG_IP` | The IP address and port for remote netlogging. | |
-| `IW4X_EXTRA_ARGS` | Allows you to extend the start param. | |
+| `PLUTO_SERVER_KEY` | **Required for Plutonium.** Server key from <https://platform.plutonium.pw/serverkeys>. | Plutonium only |
+| `PLUTO_MAX_CLIENTS` | Maximum players (Plutonium T5 only — other games set this in the cfg). | Plutonium T5 only |
+| `IW4X_NET_LOG_IP` | IP:port for IW4x remote netlogging (`g_log_add`). | IW4x only |
 
-#### Alterware Variables
+#### Default ports
 
-| Variable | Description | Default |
-| --- | --- | --- |
-| `ALTER_CONFIG_FILE` | **Required.** The filename of your server's configuration file (placed in `zone/`). | |
-| `ALTER_SERVER_NAME` | The name of your server. | "T7x Docker Server" |
-| `ALTER_PORT` | The network port for the server. | `27017` |
-| `ALTER_MOD` | The Steam Workshop ID of the mod to load. Omit this if no mod needed. | |
-| `ALTER_AUTO_UPDATE` | Set to `"false"` to prevent the container from checking for updates on start. | `true` |
-| `ALTER_HEALTHCHECK` | Set to `"false"` to disable the health check. | `true` |
-| `ALTER_SKIP_SEED` | Set to `"true"` to skip first-run config seeding. See [Bundled Config Seeds](#bundled-config-seeds). | `false` |
-| `ALTER_EXTRA_ARGS` | Allows you to extend the start param. | |
+| Game | Default |
+| --- | --- |
+| iw4x | 28960 |
+| iw5 | 27016 |
+| t4, t5 | 28960 |
+| t6 | 4976 |
+| t7x | 27017 |
+
+> The legacy `PLUTO_*`/`IW4X_*`/`ALTER_*` prefixed env vars from the `:latest` (v1) image are **not accepted** on `:v2`. Use the unified `PLUTAINER_*` names above. The only old names that remain are `PLUTO_SERVER_KEY`, `PLUTO_MAX_CLIENTS`, and `IW4X_NET_LOG_IP` — they are single-family vars and never had a unified form.
 
 ***
 
-### Volumes and Configuration Files
+### Volume Layout
 
-To persist your server configurations and provide the necessary game files, you must use Docker volumes.
+The container expects two volume mounts:
 
-* **Game Files:** You need to mount your host machine's game files directory into the container at `/home/plutainer/gamefiles`. It is highly recommended to mount this as read-only (`:ro`) to prevent the container from modifying your base game files.
-* **Config Files:** Your server's `.cfg` files should be included in the default expected locations for the games. Mount `/home/plutainer/app`. The expected relative game config defaults are...
-  * **IW4x:** `./gamefiles/userraw/`
-  * **Plutonium T4 (WaW):** `./gamefiles/main/`
-  * **Plutonium T5 (BO1):** `./plutonium/storage/t5/`
-  * **Plutonium IW5 (MW3):** `./gamefiles/admin/`
-  * **Plutonium T6 (BO2):** `./plutonium/storage/t6/`
-  * **Alterware T7x (BO3):** `./gamefiles/zone/`
+| Container path | Purpose | Recommended host mount |
+| --- | --- | --- |
+| `/home/plutainer/gamefiles` | Read-only base game files you own. | Bind-mount with `:ro`. |
+| `/home/plutainer/app` | Persistent server state, configs, and logs. | Bind-mount or named volume. |
+
+On a fresh `app/` mount, the container initialises this layout on first start:
+
+```
+app/
+  configs/                # Your server's *.cfg files. Edit here.
+  logs/                   # Stable symlinks to active *.log files (see Log Symlinks).
+  runtime/
+    gamefiles/            # Symlinks into the read-only gamefiles mount, plus
+                          # writable game state (mods, maps, plutonium storage).
+    plutonium/            # Plutonium binaries and storage.
+  .plutainer-version      # "2" — marks volume layout version.
+```
+
+**Where to put your `*.cfg` files:** drop them in `app/configs/` and set `PLUTAINER_CONFIG_FILE` to the filename. The container creates a symlink at the engine's expected path on each start, so the game still reads from its usual location — you just have one predictable place to edit.
+
+Example: for a T6 server with `PLUTAINER_CONFIG_FILE=dedicated_zm.cfg`, you edit `app/configs/dedicated_zm.cfg`, and the container symlinks `app/runtime/plutonium/storage/t6/dedicated_zm.cfg → ../../../../configs/dedicated_zm.cfg`.
+
+If you set `PLUTAINER_MOD`, the same cfg also gets symlinked into the mod's config dir (e.g. `app/runtime/plutonium/storage/t6/<mod>/dedicated_zm.cfg`), so the engine finds it whether it looks in the base dir or the mod-scoped one.
+
+Nested configs (e.g. cfg files referenced by mods using subdirectories) stay at their engine path under `app/runtime/` and are not lifted to `configs/`. You can still edit them there.
+
+**Auto-lift:** if you set `PLUTAINER_CONFIG_FILE=dedicated.cfg` but the file is at `app/runtime/.../dedicated.cfg` (as a real file, not symlink) rather than `app/configs/dedicated.cfg`, the container moves it into `app/configs/` on next start and the symlink fan-out picks it up. One-time fix, no manual migration.
+
+**Filename mismatch:** if the configured file doesn't exist anywhere, the container refuses to start with a clear error and (if there's a case-only mismatch like `Server.cfg` vs `server.cfg`) tells you which case-insensitive match it found. Filenames remain case-sensitive — the container won't auto-rename.
+
+***
+
+### Raw Configs Mode
+
+Set `PLUTAINER_USE_RAW_CONFIGS=true` to opt out of the `app/configs/` SOT model. With this on:
+
+- The engine config dir under `app/runtime/...` becomes the source of truth.
+- `app/configs/` is left untouched (whatever's there is ignored).
+- No symlinks are placed; cfg files live where the game reads them.
+- Seed configs go directly into the engine dir.
+
+Use this when you want the v1 editing experience inside the v2 directory layout (e.g. tooling on your host expects to find `t6zm-1/runtime/plutonium/storage/t6/dedicated.cfg` as a real file). Default-off so most users get the "edit in one folder" affordance without thinking about it.
+
+You can toggle this between restarts. Plutainer doesn't migrate files when you flip the flag — that's on you.
+
+***
+
+### Upgrading from v1
+
+If you have an existing deployment that was running an older `:latest` (now `:v1-final`), pulling the new `:latest` (v2) refuses to start: v2 detects either v1 environment variables (`PLUTO_*`/`IW4X_*`/`ALTER_*`) or the v1 volume layout (`app/gamefiles/`, `app/plutonium/` at the top level with no `.plutainer-version` marker) and prints a combined refusal block in `docker logs` listing exactly what was detected, plus the two paths forward.
+
+**Full step-by-step guide:** [MIGRATION.md](MIGRATION.md) — env var mapping table, the one-command volume migration, dry-run option, and how to pin `:v1-final` if you would rather defer.
+
+Quick summary of the migration path:
+
+1. `docker compose down`
+2. Run the migration tool once per volume (append `--dry-run` to preview):
+   ```sh
+   docker run --rm \
+     -v <YOUR_APP_VOLUME>:/home/plutainer/app \
+     --entrypoint /home/plutainer/.plutainer/migrate-v1-to-v2.sh \
+     ghcr.io/ayymoss/plutainer:v2
+   ```
+3. Rename `PLUTO_*`/`IW4X_*`/`ALTER_*` env vars to `PLUTAINER_*` in your compose (full table in MIGRATION.md).
+4. `docker compose up -d`
+
+If you also have IW4MAdmin sidecar mounts pointing at log paths like `./t6zm-1/plutonium/storage/...`, update them to `./t6zm-1/runtime/plutonium/storage/...` — or better, switch to the stable [log symlink directory](#log-symlinks).
+
+***
 
 ### Bundled Config Seeds
 
 To make first-run setup painless, the image bundles default configs from community repos and copies them into the bind-mounted `app/` volume on container start. Files that already exist are **never overwritten** — existing user configs are always kept as-is.
+
+Top-level `*.cfg` files from each seed bundle land in `app/configs/` (flat). Other assets (mod scripts, maps, nested cfgs, lobby scripts) land under `app/runtime/` at their engine-expected paths.
 
 | Game | Source repo |
 | --- | --- |
@@ -113,9 +168,9 @@ To make first-run setup painless, the image bundles default configs from communi
 | Plutonium T5 | [xerxes-at/T5ServerConfig](https://github.com/xerxes-at/T5ServerConfig) |
 | Plutonium T6 | [xerxes-at/T6ServerConfigs](https://github.com/xerxes-at/T6ServerConfigs) |
 | Plutonium IW5 | [xerxes-at/IW5ServerConfig](https://github.com/xerxes-at/IW5ServerConfig) |
-| Alterware T7x | [Dss0/t7-server-config](https://github.com/Dss0/t7-server-config) (includes the `t7x/lobby_scripts/` required for `sv_lobby_mode` to work) |
+| Alterware T7x | [Dss0/t7-server-config](https://github.com/Dss0/t7-server-config) (includes `t7x/lobby_scripts/` required for `sv_lobby_mode`) |
 
-To opt out — for example if you manage configs entirely yourself and don't want any default files appearing in your bind mount — set `PLUTO_SKIP_SEED=true` (Plutonium) or `ALTER_SKIP_SEED=true` (Alterware).
+To opt out — for example if you manage configs entirely yourself and don't want any default files appearing in your bind mount — set `PLUTAINER_SKIP_SEED=true`.
 
 The seed snapshot is frozen at image build time. Pulling a newer image only seeds files that don't yet exist in your bind mount, so the upstream repo never silently overwrites your edits.
 
@@ -125,19 +180,19 @@ The seed snapshot is frozen at image build time. Pulling a newer image only seed
 
 #### Mount Permissions
 
-When you mount volumes from your host machine into the container, the `plutainer` (with UID `1000`) needs to have the appropriate permissions to read and write to those directories. If the ownership on your host directories is incorrect, the server may fail to start or be unable to save data.
+When you mount volumes from your host machine into the container, the `plutainer` user (with UID `1000`) needs to have the appropriate permissions to read and write to those directories. If the ownership on your host directories is incorrect, the server may fail to start or be unable to save data.
 
-On many desktop Linux distributions (like Debian), the first user you create is automatically assigned UID `1000`. If you are that user, you may not need to do anything. However, if you created the directories as `root` (e.g., using `sudo mkdir`), you will need to update their ownership.
+On many desktop Linux distributions, the first user you create is automatically assigned UID `1000`. If you are that user, you may not need to do anything. However, if you created the directories as `root` (e.g., using `sudo mkdir`), you will need to update their ownership.
 
 #### How to Fix Permissions
 
-To ensure the container has the correct access, you should change the ownership of your persistent data directory to match the container's user. Run the following command on your host machine, adjusting the path to match your setup:
+To ensure the container has the correct access, change the ownership of your persistent data directory to match the container's user. Run the following command on your host machine, adjusting the path to match your setup:
 
 ```sh
 sudo chown -R 1000:1000 /opt/pluto-servers/t6zm-server-1/
 ```
 
-The `-R` flag applies the ownership recursively, ensuring all files and sub-folders have the correct permissions. While the container only needs to *read* the game files, applying correct ownership to that volume as well is good practice to avoid any potential read-related issues.
+The `-R` flag applies the ownership recursively, ensuring all files and sub-folders have the correct permissions.
 
 ***
 
@@ -153,7 +208,43 @@ docker exec <container_name> rcon-cli status
 docker exec -i <container_name> rcon-cli
 ```
 
-Your server configuration file must have `rcon_password` set for `rcon-cli` to work.
+Your server configuration file must have `rcon_password` set for `rcon-cli` to work. Accepted forms in the cfg:
+
+```
+set  rcon_password "your_password_here"
+seta rcon_password 'also_works'
+set  rcon_password unquoted_also_ok
+```
+
+Comment-only lines (`// ...`) are ignored. If multiple uncommented `rcon_password` lines exist, the last one wins. If the parser can't find one, the container prints a `[WARN]` at startup but keeps running — healthcheck and rcon-cli are then unavailable until you add it. **Do not** set `rcon_password` via `PLUTAINER_EXTRA_ARGS` — Plutainer cannot read it back from there.
+
+***
+
+### Restart behavior
+
+Plutainer distinguishes between *configuration errors* (your fault) and *runtime crashes* (the game's fault):
+
+- **Configuration error** (e.g. missing `PLUTAINER_CONFIG_FILE`, wrong volume version, unparseable `PLUTAINER_GAME`): the container prints the error and then `sleep infinity` to **hold** in the `Up` state. No restart loop. Fix the issue and run `docker restart <container>`.
+- **Runtime crash** (wine exits, game segfaults, etc): the container sleeps **30 seconds** after the game process exits, then exits itself. Docker's `restart: unless-stopped` (or your chosen policy) then restarts it. This rate-limits crash loops to ~1 restart per 30s instead of hammering immediately.
+
+Healthcheck still runs on a held container and will eventually mark it unhealthy — useful signal for orchestration.
+
+***
+
+### Log Symlinks
+
+The container maintains a flat directory of symlinks at `app/logs/` pointing at the active `*.log` file for each basename. Game logs move around per game/mod (e.g. `runtime/plutonium/storage/t5/mods/<mod>/logs/games_zm.log`); the watcher surfaces them all in one predictable place so IW4MAdmin (or any other log reader) doesn't have to chase the exact path.
+
+Mount `app/logs/` as the source for downstream log consumers:
+
+```yaml
+volumes:
+  - ./t6zm-1/logs:/app/gamelogs/t6zm-1:ro
+```
+
+Symlinks are relative, so they resolve correctly from the host, this container, or a sidecar container mounting the same `app/` volume.
+
+Disable with `PLUTAINER_LOG_SYMLINKS=false`; change poll interval with `PLUTAINER_LOG_POLL_INTERVAL` (default 2s).
 
 ***
 
@@ -196,24 +287,24 @@ This issue does **not** occur if you are running IW4MAdmin directly on the host 
 The container includes a robust health check script that verifies the server is running and responsive. It works by:
 
 1. Detecting the game type and port.
-2. Locating your server configuration file.
+2. Locating your server configuration file in `app/configs/`.
 3. Extracting your `rcon_password` from the config.
 4. Sending an RCON `status` command to the server.
 5. Checking for a valid response.
 
-The health check is enabled by default. You can disable it by setting the corresponding environment variable (`PLUTO_HEALTHCHECK`, `IW4X_HEALTHCHECK`, or `ALTER_HEALTHCHECK`) to `"false"`. This can be useful for debugging or if you do not wish to set an RCON password.
+The health check is enabled by default. You can disable it by setting `PLUTAINER_HEALTHCHECK=false`. This can be useful for debugging or if you do not wish to set an RCON password.
 
-Please note that for the healthcheck to work correctly, games that support RCon whitelists need to have localhost permitted and/or "127.0.0.1"
+For the healthcheck to work correctly, games that support RCon whitelists need to have localhost permitted and/or `127.0.0.1`.
 
-To have your servers restarted automatically, simply add [Auto Heal](https://github.com/willfarrell/docker-autoheal) to the compose.
+To have your servers restarted automatically, add [Auto Heal](https://github.com/willfarrell/docker-autoheal) to the compose.
 
 ***
 
 ### Support?
 
-Discord Support: https://discord.gg/PjrFw4tNES
+Discord Support: <https://discord.gg/PjrFw4tNES>
 
-Please note that I will not be supporting Plutonium-specific issues. There is an expectation that you're already familiar with Docker. If you're brand new, please visit https://docs.docker.com/get-started/
+Please note that I will not be supporting Plutonium-specific issues. There is an expectation that you're already familiar with Docker. If you're brand new, please visit <https://docs.docker.com/get-started/>
 
 This Discord is to be specific to Plutainer and its setup and configuration (including IW4MAdmin).
 
@@ -221,5 +312,5 @@ This Discord is to be specific to Plutainer and its setup and configuration (inc
 
 #### Credits
 
-- Corey, for a production testing ground @ https://cukservers.net/
-- HGM, for the name 'Plutainer' @ https://hgmserve.rs/
+- Corey, for a production testing ground @ <https://cukservers.net/>
+- HGM, for the name 'Plutainer' @ <https://hgmserve.rs/>
