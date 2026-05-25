@@ -31,7 +31,10 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  # Must be lowercase — buildx push-by-digest does NOT auto-lowercase like
+  # metadata-action's `images:` field. github.repository is "Ayymoss/Plutainer"
+  # which fails with "invalid reference format". Hardcode the lowercase form.
+  IMAGE_NAME: ayymoss/plutainer
 
 jobs:
   build:
