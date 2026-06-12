@@ -23,7 +23,7 @@ echo "Linking files for iw4x..."
 link_files "$SOURCE_DIR" "$DEST_DIR" main zone binkw32.dll localization.txt mss32.dll
 
 # --- Step 2: Update iw4x ---
-IW4X_CACHE_LOC="$DEST_DIR/launcher/cache.json"
+IW4X_CACHE_LOC="/home/plutainer/.plutainer/cache/iw4x.db"
 if [[ -f "$IW4X_CACHE_LOC" && "${PLUTAINER_AUTO_UPDATE:-}" == "false" ]]; then
   echo "Skipping iw4x update because PLUTAINER_AUTO_UPDATE is set to 'false'."
 else
@@ -32,7 +32,18 @@ else
   else
     echo "First container run detected. Downloading iw4x initial files..."
   fi
-  /home/plutainer/.plutainer/iw4x-launcher --path "$DEST_DIR" --skip-launch --no-self-update
+  /home/plutainer/.plutainer/iw4x-launcher --skip-launch --no-self-update
+fi
+
+# --- Step 2b: Link iw4x outputs from launcher install dir into DEST_DIR ---
+echo "Linking iw4x files into game directory..."
+for f in iw4x.exe iw4x.dll zonebuilder.exe steam.exe steam_api64.dll; do
+  if [[ -e "/home/plutainer/.plutainer/$f" ]]; then
+    ln -sf "/home/plutainer/.plutainer/$f" "$DEST_DIR/$f"
+  fi
+done
+if [[ -d "/home/plutainer/.plutainer/iw4x" ]]; then
+  ln -sf "/home/plutainer/.plutainer/iw4x" "$DEST_DIR/iw4x"
 fi
 
 cd "$DEST_DIR"
