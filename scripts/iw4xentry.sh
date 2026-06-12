@@ -20,7 +20,7 @@ mkdir -p "$DEST_DIR"
 
 # --- Step 1: Link Game Files ---
 echo "Linking files for iw4x..."
-link_files "$SOURCE_DIR" "$DEST_DIR" main zone userraw binkw32.dll localization.txt mss32.dll
+link_files "$SOURCE_DIR" "$DEST_DIR" main zone userraw usermaps binkw32.dll localization.txt mss32.dll
 
 # --- Step 2: Update iw4x ---
 IW4X_CACHE_LOC="/home/plutainer/.plutainer/cache/iw4x.db"
