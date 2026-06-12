@@ -98,8 +98,6 @@ if [[ -n "${PLUTAINER_EXTRA_ARGS:-}" ]]; then
     CMD_ARGS+=(${PLUTAINER_EXTRA_ARGS})
 fi
 
-CMD_ARGS+=(+map_rotate)
-
 # --- Step 7: Launch (with 30s crash throttle) ---
 /home/plutainer/.plutainer/log-watcher.sh &
 
