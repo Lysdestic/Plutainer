@@ -43,6 +43,7 @@ for f in iw4x.exe iw4x.dll zonebuilder.exe steam.exe steam_api64.dll; do
   fi
 done
 if [[ -d "/home/plutainer/.plutainer/iw4x" ]]; then
+  rm -f "$DEST_DIR/iw4x"
   ln -sf "/home/plutainer/.plutainer/iw4x" "$DEST_DIR/iw4x"
 fi
 
